@@ -19,31 +19,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import com.google.android.material.math.MathUtils.lerp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
-/**
- * A stack of cards that can be dragged.
- * If they are dragged after a [thresholdConfig] or exceed the [velocityThreshold] the card is swiped.
- *
- * @param items Cards to show in the stack.
- * @param thresholdConfig Specifies where the threshold between the predefined Anchors is. This is represented as a lambda
- * that takes two float and returns the threshold between them in the form of a [ThresholdConfig].
- * @param velocityThreshold The threshold (in dp per second) that the end velocity has to exceed
- * in order to swipe, even if the positional [thresholds] have not been reached.
- * @param enableButtons Show or not the buttons to swipe or not
- * @param onSwipeLeft Lambda that executes when the animation of swiping left is finished
- * @param onSwipeRight Lambda that executes when the animation of swiping right is finished
- * @param onEmptyRight Lambda that executes when the cards are all swiped
- */
 @ExperimentalMaterialApi
 @Composable
 fun <T> CardStack(
@@ -60,6 +42,7 @@ fun <T> CardStack(
         config.screenWidthDp.dp.toPx()
     }
     val scope = rememberCoroutineScope()
+
     val dragManager =
         rememberDragManager(
             size = items.size,
@@ -67,6 +50,7 @@ fun <T> CardStack(
             scope = scope,
             maxElements = maxElements
         )
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -214,8 +198,8 @@ open class DragManager(
         val scale = mutableListOf<Float>()
         val opacity = mutableListOf<Float>()
         val offsetX = mutableListOf<Float>()
-        val scaleGap = 0.15f
-        val opacityGap = 0.4f
+        val scaleGap = CARD_STACK_SCALE_FACTOR
+        val opacityGap = CARD_STACK_OPACITY_GAP
         val offsetGap = scaleGap * boxWidth
         for (i in 0 until maxCards) {
             scale.add(1f - i * scaleGap)
@@ -310,6 +294,10 @@ open class DragManager(
     fun swipeRight(index: Int, dragAmountX: Float) = scope.launch {
         if (dragAmountX < 0) return@launch
         val prevItemIndex = (index - 1).coerceAtLeast(0)
+    }
+
+    fun swipeLeft(index: Int){
+
     }
 }
 
