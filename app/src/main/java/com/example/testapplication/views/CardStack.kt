@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import com.google.android.material.math.MathUtils.lerp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -42,7 +43,6 @@ fun <T> CardStack(
         config.screenWidthDp.dp.toPx()
     }
     val scope = rememberCoroutineScope()
-
     val dragManager =
         rememberDragManager(
             size = items.size,
@@ -50,7 +50,7 @@ fun <T> CardStack(
             scope = scope,
             maxElements = maxElements
         )
-
+    
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -66,65 +66,68 @@ fun <T> CardStack(
             LaunchedEffect(key1 = Unit, block = {
                 dragManager.setBoxWidth(with(density) { maxWidth.value.dp.toPx() })
             })
+            val visibleIndexRange = (selectedIndex downTo (selectedIndex-maxElements+1).coerceAtLeast(0))
             items
                 .asReversed()
                 .forEachIndexed { index, item ->
                     if (dragManager.listOfDragState.isNotEmpty()) {
                         val swipeState = dragManager.listOfDragState[index]
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .graphicsLayer {
-                                    scaleY = swipeState.scale.value
-                                    scaleX = swipeState.scale.value
-                                    translationX = swipeState.offsetX.value
-                                    translationY = swipeState.offsetY.value
-                                }
-                                .pointerInput(Unit) {
-                                    detectDragGestures(
-                                        onDragEnd = {
-                                            dragManager.onDragEnd(
-                                                index = index,
-                                                selectedIndex = selectedIndex
-                                            ) {
-                                                selectedIndex -= 1
-                                            }
-                                        },
-                                        onDrag = { change, dragAmount ->
-                                            val original = Offset(
-                                                x = swipeState.offsetX.value,
-                                                y = swipeState.offsetY.value
-                                            )
-                                            val summed = original + dragAmount
-                                            change.consumePositionChange()
-                                            if (dragAmount.x > 0) {
-                                                dragManager.swipeRight(
-                                                    index = index,
-                                                    dragAmountX = summed.x
-                                                )
-                                            }
-                                            dragManager.performDrag(
-                                                dragAmountY = summed.y,
-                                                dragAmountX = summed.x,
-                                                dragIndex = index,
-                                                selectedIndex = selectedIndex
-                                            )
-                                        }
-                                    )
-                                },
-                        ) {
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                content(item)
-                            }
+                        if(swipeState.offsetX.value != -screenWidth && index in visibleIndexRange) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .alpha(alpha = swipeState.opacity.value)
-                                    .background(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(percent = 10)
-                                    )
-                            )
+                                    .graphicsLayer {
+                                        scaleY = swipeState.scale.value
+                                        scaleX = swipeState.scale.value
+                                        translationX = swipeState.offsetX.value
+                                        translationY = swipeState.offsetY.value
+                                    }
+                                    .pointerInput(Unit) {
+                                        detectDragGestures(
+                                            onDragEnd = {
+                                                dragManager.onDragEnd(
+                                                    index = index,
+                                                    selectedIndex = selectedIndex
+                                                ) {
+                                                    selectedIndex -= 1
+                                                }
+                                            },
+                                            onDrag = { change, dragAmount ->
+                                                val original = Offset(
+                                                    x = swipeState.offsetX.value,
+                                                    y = swipeState.offsetY.value
+                                                )
+                                                val summed = original + dragAmount
+                                                change.consumePositionChange()
+                                                if (dragAmount.x > 0) {
+                                                    dragManager.swipeRight(
+                                                        index = index,
+                                                        dragAmountX = summed.x
+                                                    )
+                                                }
+                                                dragManager.performDrag(
+                                                    dragAmountY = summed.y,
+                                                    dragAmountX = summed.x,
+                                                    dragIndex = index,
+                                                    selectedIndex = selectedIndex
+                                                )
+                                            }
+                                        )
+                                    },
+                            ) {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    content(item)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .alpha(alpha = swipeState.opacity.value)
+                                        .background(
+                                            color = Color.White,
+                                            shape = RoundedCornerShape(percent = 10)
+                                        )
+                                )
+                            }
                         }
                     }
                 }
@@ -297,14 +300,11 @@ open class DragManager(
     }
 
     fun swipeLeft(index: Int){
-
+        val state = listOfDragState[index]
+        state.animateOutsideOfScreen()
     }
 }
 
-enum class DragDirection {
-    Forward,
-    Reverse
-}
 
 open class DragState(
     val index: Int,
