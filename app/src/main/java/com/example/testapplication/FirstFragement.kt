@@ -17,6 +17,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,7 +67,25 @@ class FirstFragement : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val composeView = view.findViewById<ComposeView>(R.id.compose_view)
         composeView.setContent {
-            CardStack(items = mutableListOf(Color.Red,Color.DarkGray,Color.Blue,Color.Black,Color.Magenta,Color.Red))
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                CardStack(
+                    items = mutableListOf(Color.Red,Color.DarkGray,Color.Blue,Color.Black,Color.Magenta,Color.Red),
+                    maxElements = 3,
+                    content = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color = it, shape = RoundedCornerShape(percent = 10))
+                        ) {
+
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
         }
     }
     

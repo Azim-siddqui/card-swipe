@@ -46,13 +46,11 @@ import kotlin.math.roundToInt
  */
 @ExperimentalMaterialApi
 @Composable
-fun CardStack(
+fun <T> CardStack(
     modifier: Modifier = Modifier,
-    items: MutableList<Color>,
-    thresholdConfig: (Float, Float) -> ThresholdConfig = { _, _ -> FractionalThreshold(0.2f) },
-    velocityThreshold: Dp = 125.dp,
-    enableButtons: Boolean = false,
-    maxElements: Int = 3
+    items: MutableList<T>,
+    maxElements: Int = 3,
+    content: @Composable (T) -> Unit
 ) {
     var selectedIndex by remember {
         mutableStateOf(items.size - 1)
@@ -63,19 +61,26 @@ fun CardStack(
     }
     val scope = rememberCoroutineScope()
     val dragManager =
-        rememberDragManager(size = items.size, screenWidth = screenWidth, scope = scope)
-    Box(
-        modifier = modifier
+        rememberDragManager(
+            size = items.size,
+            screenWidth = screenWidth,
+            scope = scope,
+            maxElements = maxElements
+        )
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         BoxWithConstraints(
             modifier = Modifier
-                .fillMaxHeight(0.8f)
-                .fillMaxWidth(0.7f)
-                .align(Alignment.Center)
+                .fillMaxWidth(0.8f)
+                .fillMaxHeight(0.8f),
+            contentAlignment = Alignment.Center
         ) {
             val density = LocalDensity.current
             LaunchedEffect(key1 = Unit, block = {
-                dragManager.setBoxWidth(with(density){maxWidth.value.dp.toPx()})
+                dragManager.setBoxWidth(with(density) { maxWidth.value.dp.toPx() })
             })
             items
                 .asReversed()
@@ -91,13 +96,6 @@ fun CardStack(
                                     translationX = swipeState.offsetX.value
                                     translationY = swipeState.offsetY.value
                                 }
-                                .offset {
-                                    IntOffset(
-                                        x = swipeState.relativeOffsetX.value.roundToInt(),
-                                        y = 0
-                                    )
-                                }
-                                .background(color = item, shape = RoundedCornerShape(percent = 10))
                                 .pointerInput(Unit) {
                                     detectDragGestures(
                                         onDragEnd = {
@@ -131,6 +129,9 @@ fun CardStack(
                                     )
                                 },
                         ) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                content(item)
+                            }
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -148,20 +149,27 @@ fun CardStack(
 }
 
 @Composable
-fun rememberDragManager(size: Int, screenWidth: Float, scope: CoroutineScope) = remember {
-    DragManager(size = size, screenWidth = screenWidth, scope = scope)
-}
+fun rememberDragManager(size: Int, screenWidth: Float, scope: CoroutineScope, maxElements: Int) =
+    remember {
+        DragManager(
+            size = size,
+            screenWidth = screenWidth,
+            scope = scope,
+            maxElements = maxElements
+        )
+    }
 
 open class DragManager(
     val size: Int,
     private val screenWidth: Float,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val maxElements: Int
 ) {
 
     var listOfDragState: List<DragState> = listOf()
         private set
 
-    private val maxCards = 3
+    private val maxCards = maxElements
 
     private var scale: List<Float> = listOf()
 
@@ -169,7 +177,7 @@ open class DragManager(
 
     private var offsetX: List<Float> = listOf()
 
-    private var boxWidth:Float = 0f
+    private var boxWidth: Float = 0f
 
     init {
         //Initializing drag states for all the cards
@@ -178,8 +186,8 @@ open class DragManager(
         initView()
     }
 
-    fun setBoxWidth(boxWidth:Float){
-        Log.d("TAG","CALLED!!!")
+    fun setBoxWidth(boxWidth: Float) {
+        Log.d("TAG", "CALLED!!!")
         this.boxWidth = boxWidth
         initProperty()
         initView()
@@ -208,7 +216,7 @@ open class DragManager(
         val offsetX = mutableListOf<Float>()
         val scaleGap = 0.15f
         val opacityGap = 0.4f
-        val offsetGap = scaleGap*boxWidth
+        val offsetGap = scaleGap * boxWidth
         for (i in 0 until maxCards) {
             scale.add(1f - i * scaleGap)
             opacity.add(i * opacityGap)
@@ -230,7 +238,7 @@ open class DragManager(
     fun performDrag(dragAmountX: Float, dragAmountY: Float, dragIndex: Int, selectedIndex: Int) =
         scope.launch {
             if (dragIndex != selectedIndex) return@launch
-            if(dragAmountX>0) return@launch
+            if (dragAmountX > 0) return@launch
             launch {
                 //Only the top item should be removed from deck otherwise it will not respond
                 val dragState = listOfDragState[dragIndex]
@@ -302,11 +310,10 @@ open class DragManager(
     fun swipeRight(index: Int, dragAmountX: Float) = scope.launch {
         if (dragAmountX < 0) return@launch
         val prevItemIndex = (index - 1).coerceAtLeast(0)
-
     }
 }
 
-enum class DragDirection{
+enum class DragDirection {
     Forward,
     Reverse
 }
