@@ -212,14 +212,12 @@ open class DragManager(val size:Int,private val screenWidth: Float,private val s
         when {
             abs(swipeState.offsetX.targetValue) < screenWidth / 2 -> {
                 swipeState
-                    .positionToCenter()
-                    .invokeOnCompletion {
+                    .positionToCenter(){
                         returnToEquilibium(index = index)
                     }
             }
             abs(swipeState.offsetX.targetValue) > 0 -> swipeState
-                .animateOutsideOfScreen()
-                .invokeOnCompletion {
+                .animateOutsideOfScreen(){
                     if(index-maxCards >= 0) {
                         scope.launch {
                             val lastElement = listOfDragState[index-maxCards]
@@ -230,22 +228,21 @@ open class DragManager(val size:Int,private val screenWidth: Float,private val s
                             )
                         }
                     }
+                }
+                .invokeOnCompletion {
                     onDismiss()
                 }
             abs(swipeState.offsetX.targetValue) < 0 -> {
-                swipeState.positionToCenter()
-                    .invokeOnCompletion {
+                swipeState.positionToCenter(){
                     returnToEquilibium(index = index)
                 }
             }
         }
     }
 
-    private fun returnToEquilibium(index: Int){
+    private suspend fun returnToEquilibium(index: Int) = scope.launch{
         for((counter, i) in (index-1 downTo (index-maxCards+1).coerceAtLeast(0)).withIndex()){
-            scope.launch {
-                listOfDragState[i].animateTo(scaleP = scale[counter+1], opacityP = opacity[counter+1], offsetXP = offsetX[counter+1])
-            }
+            listOfDragState[i].animateTo(scaleP = scale[counter+1], opacityP = opacity[counter+1], offsetXP = offsetX[counter+1])
         }
     }
 }
@@ -278,14 +275,18 @@ open class DragState(
         offsetX.snapTo(dragAmountX)
     }
 
-    fun positionToCenter() = scope.launch {
+    fun positionToCenter(onParallel:suspend ()->Unit = {}) = scope.launch {
         launch { offsetX.animateTo(0f) }
         launch { offsetY.animateTo(0f) }
+        launch { onParallel() }
     }
 
-    fun animateOutsideOfScreen() = scope.launch {
+    fun animateOutsideOfScreen(onParallel: suspend () -> Unit = {}) = scope.launch {
         launch {
             offsetX.animateTo(-screenWidth)
+        }
+        launch {
+            onParallel()
         }
     }
 
