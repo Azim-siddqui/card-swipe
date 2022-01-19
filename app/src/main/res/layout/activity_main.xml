@@ -6,10 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/pager"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_container_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-    />
+        android:name="com.example.testapplication.FirstFragement"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

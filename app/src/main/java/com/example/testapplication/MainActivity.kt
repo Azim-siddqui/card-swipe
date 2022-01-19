@@ -14,9 +14,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val viewPager = findViewById<ViewPager2>(R.id.pager)
-        val adapter = ScreenSlidePagerAdapter(this)
-        viewPager.adapter = adapter
+
     }
 
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {

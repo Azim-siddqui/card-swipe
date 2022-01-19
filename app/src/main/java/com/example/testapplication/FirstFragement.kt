@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.view.ViewParent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
@@ -25,13 +26,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -68,22 +73,25 @@ class FirstFragement : Fragment() {
         val composeView = view.findViewById<ComposeView>(R.id.compose_view)
         composeView.setContent {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 CardStack(
-                    items = mutableListOf(Color.Red,Color.DarkGray,Color.Blue,Color.Black,Color.Magenta,Color.Red),
+                    items = mutableListOf(R.drawable.image1,R.drawable.image2,R.drawable.image3,R.drawable.image4,R.drawable.images5),
                     maxElements = 3,
                     content = {
-                        Box(
+                        Image(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(color = it, shape = RoundedCornerShape(percent = 10))
-                        ) {
-
-                        }
+                                .clip(shape = RoundedCornerShape(percent = 10)),
+                            painter = painterResource(id = it),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop
+                        )
                     },
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxSize(fraction = 0.9f)
                 )
             }
         }
