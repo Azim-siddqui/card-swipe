@@ -79,7 +79,7 @@ class FirstFragement : Fragment() {
             ) {
                 CardStack(
                     items = mutableListOf(R.drawable.image1,R.drawable.image2,R.drawable.image3,R.drawable.image4,R.drawable.images5),
-                    maxElements = 3,
+                    maxElements = 5,
                     content = {
                         Image(
                             modifier = Modifier

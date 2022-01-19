@@ -59,10 +59,16 @@ fun <T> CardStack(
             maxElements = maxElements
         )
     LaunchedEffect(key1 = Unit, block = {
-        delay(2000)
-        dragManager.swipeLeft(selectedIndex){
-            selectedIndex-=it
+        var i=1
+        while (true) {
+
+            delay(2000)
+            dragManager.swipeLeft(items.size-i) {
+               // selectedIndex--
+            }
+            i++
         }
+
     })
 
     Column(
@@ -376,6 +382,8 @@ open class DragManager(
      * @param onDismiss It will be called after dismissal of the card
      */
     fun swipeLeft(index: Int,onDismiss: (Int) -> Unit = {}) = scope.launch {
+        if(index < 0) return@launch
+        else
         animateOutsideOfScreen(index = index, onDismiss = onDismiss)
     }
 
